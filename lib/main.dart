@@ -1,20 +1,67 @@
 import 'package:flutter/material.dart';
-import 'Constants.dart';
-import 'Functions.dart';
-void main() => runApp(MaterialApp(title: "ExpMan",home: Home(),));
+import 'package:expman/Expense.dart';
+import 'package:expman/Transactions.dart';
+import 'package:expman/Home.dart';
 
-class Home extends StatelessWidget {
-  int bal=90000;
+import 'Constants.dart';
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
   // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Home',
+      theme: ThemeData(
+        primarySwatch: Colors.lightBlue,
+      ),
+      home: MyHomePage(title: 'Home'),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key key, this.title}) : super(key: key);
+  String title;
+
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+
+  int _currentIndex = 0;
+
+  List<Widget> _tabList = [
+    Home(),
+    Expense(),
+    Transactions()
+  ];
+
+  TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: _tabList.length);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  selectedChoice(String ch){ debugPrint(ch);}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,letterSpacing: 1.25),),
+        title: Text(widget.title,style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,letterSpacing: 1.25),),
         centerTitle: true,
         actions: <Widget>[
           PopupMenuButton<String>(
-            onSelected: Functions().selectedChoice,
+            onSelected: selectedChoice,
             itemBuilder: (BuildContext context){
               return Constants.choices.map((String choice){
                 return PopupMenuItem<String>(
@@ -26,30 +73,41 @@ class Home extends StatelessWidget {
           )
         ],
       ),
-      body: new Container(
-        alignment: Alignment.center,
-        child: new Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            new Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Text("Current Month",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),)
-              ],
-            ),
-            new Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text("Expense: $bal",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),)
-                ],
-            )
-          ],
-        ),
+      body: TabBarView(
+        physics: NeverScrollableScrollPhysics(),
+        controller: _tabController,
+        children: _tabList,
       ),
-      bottomNavigationBar: new BottomNavigationBar(items: [
-        new BottomNavigationBarItem(icon: new Icon(Icons.home), title: new Text("Home")),
-        new BottomNavigationBarItem(icon: new Icon(Icons.payment), title: new Text("Expense")),
-        new BottomNavigationBarItem(icon: new Icon(Icons.attach_money), title: new Text("Transaction")),
-      ],selectedItemColor: Colors.white,backgroundColor: Colors.lightBlue, onTap: (int ch){Functions().navigate_item(ch,context);}),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (currentIndex){
+
+          setState(() {
+            _currentIndex = currentIndex;
+            switch(_currentIndex){
+              case 0:
+                widget.title= "Home";
+                break;
+              case 1:
+                widget.title= "Expense";
+                break;
+              case 2:
+                widget.title= "Transaction";
+                break;
+            }
+          });
+
+          _tabController.animateTo(_currentIndex);
+          //_tabController.index=_currentIndex;
+        },
+        items: [
+          new BottomNavigationBarItem(icon: new Icon(Icons.home), title: new Text("Home")),
+          new BottomNavigationBarItem(icon: new Icon(Icons.payment), title: new Text("Expense"),),
+          new BottomNavigationBarItem(icon: new Icon(Icons.attach_money), title: new Text("Transaction")),
+        ],
+      ),
     );
-  }}
+  }
+}
+
+
